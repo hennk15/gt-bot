@@ -85,7 +85,7 @@ npm run start
 
 2. Open your browser and navigate to:
 ```
-http://localhost:3000
+http://localhost:3005
 ```
 
 3. The terminal will automatically:
