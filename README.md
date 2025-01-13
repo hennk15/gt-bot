@@ -2,7 +2,7 @@
 
 A high-frequency trading terminal for Solana tokens with real-time monitoring and automated trading strategies.
 
-![Terminal Screenshot](screenshot.png)
+![Terminal Screenshot](screen.jpg)
 
 ## Features
 
