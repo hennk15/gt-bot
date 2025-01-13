@@ -24,7 +24,7 @@ A high-frequency trading terminal for Solana tokens with real-time monitoring an
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/solana-trading-terminal.git
+git clone https://github.com/GamblingTerminal/gt-bot.git
 cd solana-trading-terminal
 ```
 
