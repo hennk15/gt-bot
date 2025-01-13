@@ -80,7 +80,7 @@ All settings are configured in `config.js`:
 
 1. Start the terminal:
 ```bash
-npm run start
+npm start
 ```
 
 2. Open your browser and navigate to:
