@@ -2,12 +2,13 @@
   "name": "gt-bot",
   "version": "1.0.0",
   "description": "Automated trading bot for Solana tokens",
+  "type": "module",
   "main": "scanner.js",
   "scripts": {
     "start": "node scanner.js"
   },
   "dependencies": {
     "@solana/web3.js": "^1.30.0",
-    "node-fetch": "^2.6.1"
+    "node-fetch": "^3.3.2"
   }
 }
