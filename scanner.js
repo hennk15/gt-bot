@@ -1,7 +1,7 @@
-const { Connection, PublicKey, Keypair } = require('@solana/web3.js');
-const fetch = require('node-fetch');
-const fs = require('fs');
-const config = require('./config');
+import { Connection, PublicKey, Keypair } from '@solana/web3.js';
+import fetch from 'node-fetch';
+import fs from 'fs';
+import config from './config.js';
 
 // Set to store purchased tokens and their entry prices
 const purchasedTokens = new Map();
@@ -31,7 +31,8 @@ function savePurchasedTokens() {
 async function getWalletBalance() {
     try {
         const connection = new Connection(config.RPC_URL);
-        const wallet = Keypair.fromSecretKey(Buffer.from(config.WALLET_PRIVATE_KEY, 'base64'));
+        const secretKey = Uint8Array.from(JSON.parse(config.WALLET_PRIVATE_KEY));
+        const wallet = Keypair.fromSecretKey(secretKey);
         const balance = await connection.getBalance(wallet.publicKey); // In lamports
         return balance / 1e9; // Convert to SOL
     } catch (error) {
@@ -127,53 +128,4 @@ async function monitorTokens() {
 
             console.log(`Token: ${token.name} (${token.symbol})`);
             console.log(`• Entry Price: $${token.entryPrice.toFixed(2)}`);
-            console.log(`• Current Price: $${currentPrice.toFixed(2)}`);
-            console.log(`• Price Change: ${priceChange.toFixed(2)}%`);
-
-            // Sell logic
-            if (priceChange >= config.PROFIT_THRESHOLD_PERCENT) {
-                console.log(`Selling ${token.name} (${token.symbol}) for 100% profit.`);
-                purchasedTokens.delete(address);
-                savePurchasedTokens();
-            } else if (priceChange <= -config.LOSS_THRESHOLD_PERCENT) {
-                console.log(`Selling ${token.name} (${token.symbol}) due to 50% loss.`);
-                purchasedTokens.delete(address);
-                savePurchasedTokens();
-            } else {
-                console.log(`Holding ${token.name} (${token.symbol}).`);
-            }
-
-            console.log('--------------------------------------');
-        } catch (error) {
-            console.error(`Error monitoring token ${token.name || 'Unknown'} (${token.symbol}):`, error.message);
-        }
-    }
-}
-
-// Main loop
-async function analyzeAndTradeTokens() {
-    const tokens = await fetchFromDexScreener();
-
-    if (tokens.length === 0) {
-        console.log('No tokens found from DEX Screener.');
-        return;
-    }
-
-    tokens.forEach(async token => {
-        if (!isAlreadyPurchased(token.address)) {
-            await tradeToken(token);
-        }
-    });
-
-    await monitorTokens();
-}
-
-async function main() {
-    while (true) {
-        await analyzeAndTradeTokens();
-        console.log(`\nWaiting ${config.SCAN_INTERVAL_MINUTES || 10} minutes before next scan...`);
-        await new Promise(resolve => setTimeout(resolve, (config.SCAN_INTERVAL_MINUTES || 10) * 60 * 1000));
-    }
-}
-
-main();
+            console.log(`• Current
