@@ -1,3 +1,4 @@
+const { Connection, PublicKey, Keypair } = require('@solana/web3.js');
 const fetch = require('node-fetch');
 const fs = require('fs');
 const config = require('./config');
@@ -26,6 +27,35 @@ function savePurchasedTokens() {
     }
 }
 
+// Fetch wallet balance
+async function getWalletBalance() {
+    try {
+        const connection = new Connection(config.RPC_URL);
+        const wallet = Keypair.fromSecretKey(Buffer.from(config.WALLET_PRIVATE_KEY, 'base64'));
+        const balance = await connection.getBalance(wallet.publicKey); // In lamports
+        return balance / 1e9; // Convert to SOL
+    } catch (error) {
+        console.error('Error fetching wallet balance:', error.message);
+        return 0;
+    }
+}
+
+// Determine purchase amount
+async function getPurchaseAmount() {
+    const balance = await getWalletBalance();
+    console.log(`Current Wallet Balance: ${balance.toFixed(2)} SOL`);
+
+    if (balance >= config.AMOUNT_SOL) {
+        return config.AMOUNT_SOL;
+    } else if (balance >= config.MIN_AMOUNT_SOL) {
+        console.warn(`Insufficient balance for ${config.AMOUNT_SOL} SOL. Defaulting to ${config.MIN_AMOUNT_SOL} SOL.`);
+        return config.MIN_AMOUNT_SOL;
+    } else {
+        console.error('Insufficient balance for trading.');
+        return 0; // No trade if balance is below the minimum
+    }
+}
+
 // Fetch all tokens from DEX Screener
 async function fetchFromDexScreener() {
     try {
@@ -46,16 +76,24 @@ function isAlreadyPurchased(tokenAddress) {
 }
 
 // Simulate trading a token
-function tradeToken(token) {
+async function tradeToken(token) {
+    const purchaseAmount = await getPurchaseAmount();
+
+    if (purchaseAmount === 0) {
+        console.log(`Skipping trade for ${token.name || 'Unknown'} (${token.symbol || 'N/A'}) due to insufficient balance.`);
+        return;
+    }
+
     const entryPrice = token.price || 0;
     if (entryPrice === 0) {
-        console.error(`Token ${token.name} (${token.symbol}) has no price data.`);
+        console.error(`Token ${token.name || 'Unknown'} (${token.symbol || 'N/A'}) has no price data.`);
         return;
     }
 
     console.log(`Trading new token: ${token.name || 'Unknown'} (${token.symbol || 'N/A'})`);
     console.log(`• Address: ${token.address || 'N/A'}`);
     console.log(`• Entry Price: $${entryPrice.toFixed(2)}`);
+    console.log(`• Amount Allocated: ${purchaseAmount} SOL`);
     console.log('--------------------------------------');
 
     // Add token to purchased tokens
@@ -64,6 +102,7 @@ function tradeToken(token) {
         symbol: token.symbol || 'N/A',
         address: token.address || 'N/A',
         entryPrice,
+        purchaseAmount,
     });
 
     savePurchasedTokens();
@@ -91,12 +130,12 @@ async function monitorTokens() {
             console.log(`• Current Price: $${currentPrice.toFixed(2)}`);
             console.log(`• Price Change: ${priceChange.toFixed(2)}%`);
 
-            // Decide whether to sell
-            if (priceChange >= 100) {
+            // Sell logic
+            if (priceChange >= config.PROFIT_THRESHOLD_PERCENT) {
                 console.log(`Selling ${token.name} (${token.symbol}) for 100% profit.`);
                 purchasedTokens.delete(address);
                 savePurchasedTokens();
-            } else if (priceChange <= -50) {
+            } else if (priceChange <= -config.LOSS_THRESHOLD_PERCENT) {
                 console.log(`Selling ${token.name} (${token.symbol}) due to 50% loss.`);
                 purchasedTokens.delete(address);
                 savePurchasedTokens();
@@ -106,12 +145,12 @@ async function monitorTokens() {
 
             console.log('--------------------------------------');
         } catch (error) {
-            console.error(`Error monitoring token ${token.name} (${token.symbol}):`, error.message);
+            console.error(`Error monitoring token ${token.name || 'Unknown'} (${token.symbol}):`, error.message);
         }
     }
 }
 
-// Main trading function
+// Main loop
 async function analyzeAndTradeTokens() {
     const tokens = await fetchFromDexScreener();
 
@@ -120,18 +159,15 @@ async function analyzeAndTradeTokens() {
         return;
     }
 
-    // Trade all new tokens
-    tokens.forEach(token => {
+    tokens.forEach(async token => {
         if (!isAlreadyPurchased(token.address)) {
-            tradeToken(token);
+            await tradeToken(token);
         }
     });
 
-    // Monitor purchased tokens
     await monitorTokens();
 }
 
-// Main loop
 async function main() {
     while (true) {
         await analyzeAndTradeTokens();
