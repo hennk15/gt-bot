@@ -38,36 +38,23 @@ async function fetchFromDexScreener() {
     }
 }
 
-// Fetch trending tokens from Twitter API
-async function fetchTrendingTokens() {
+// Fetch trending tokens from CoinGecko API
+async function fetchFromCoinGecko() {
     try {
-        console.log('Fetching trending tokens from Twitter API...');
-        const response = await fetch('https://api.twitter.com/2/tweets/search/recent?query=trending%20crypto', {
-            headers: {
-                Authorization: `Bearer ${config.TWITTER_BEARER_TOKEN}`, // Twitter API Bearer Token
-            },
-        });
-
+        console.log('Fetching trending tokens from CoinGecko...');
+        const response = await fetch('https://api.coingecko.com/api/v3/search/trending');
         if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
         const data = await response.json();
-
-        // Extract hashtags or symbols from tweets
-        const trendingTokens = data.data
-            .map(tweet => tweet.text.match(/#\w+/g)) // Extract hashtags
-            .flat()
-            .filter(Boolean) // Remove null/undefined
-            .map(hashtag => hashtag.replace('#', '').toUpperCase()); // Clean up hashtags
-
-        return Array.from(new Set(trendingTokens)); // Remove duplicates
+        return data.coins.map(coin => coin.item.symbol.toUpperCase()); // Extract symbols
     } catch (error) {
-        console.error('Error fetching trending tokens from Twitter API:', error.message);
+        console.error('Error fetching data from CoinGecko:', error.message);
         return [];
     }
 }
 
-// Match DEX Screener tokens with Twitter trending tokens
+// Match DEX Screener tokens with CoinGecko trending tokens
 function matchTrendingTokens(dexTokens, trendingTokens) {
-    console.log('Matching tokens with trending tokens...');
+    console.log('Matching tokens with CoinGecko trending tokens...');
     return dexTokens.filter(token => {
         const symbol = token.symbol || '';
         return trendingTokens.includes(symbol.toUpperCase());
@@ -77,7 +64,7 @@ function matchTrendingTokens(dexTokens, trendingTokens) {
 // Analyze and process tokens
 async function analyzeAndProcessTokens() {
     const dexTokens = await fetchFromDexScreener();
-    const trendingTokens = await fetchTrendingTokens();
+    const trendingTokens = await fetchFromCoinGecko();
 
     if (dexTokens.length === 0) {
         console.log('No tokens found from DEX Screener.');
@@ -85,7 +72,7 @@ async function analyzeAndProcessTokens() {
     }
 
     if (trendingTokens.length === 0) {
-        console.log('No trending tokens found from Twitter.');
+        console.log('No trending tokens found from CoinGecko.');
         return;
     }
 
@@ -119,4 +106,3 @@ async function main() {
 }
 
 main();
-
