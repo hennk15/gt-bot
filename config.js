@@ -1,35 +1,25 @@
 module.exports = {
-    // Your wallet's private key (keep this secure!)
-    PRIVATE_KEY: "",
-    
-    // Amount of SOL to spend
-    AMOUNT_TO_SPEND: 0.1,
-    
-    // Slippage tolerance in basis points (1 bp = 0.01%, 100 bp = 1%)
-    SLIPPAGE_BPS: 2500, // 25% slippage
-    
-    // Priority fee in SOL (increased for faster execution)
-    PRIORITY_FEE_SOL: 0.0015,
-    
-    // List of RPC endpoints to use (will try them in order)
+    // Solana RPC Configuration
+    RPC_URL: 'https://api.mainnet-beta.solana.com', // Primary RPC URL
     RPC_ENDPOINTS: [
-        'https://api.mainnet-beta.solana.com',
-        // Add more RPC endpoints here for more stability
-        // https://instantnodes.io/ for examples (need account)
+        'https://api.mainnet-beta.solana.com', // Add additional endpoints if needed
     ],
 
-    // Keep as fallback
-    RPC_URL: 'https://api.mainnet-beta.solana.com',
+    // Wallet Settings
+    PRIVATE_KEY: '2TnEgLSmHHgf25BkBRvLpUAieJu3dqWNNPmrMcNAuUoDQD8kkasZghyJck2mDDU3VzJTPGWLSTsmvj7JtT5EvQz', // Wallet private key
 
-    // Price monitoring settings
-    PRICE_CHECK_INTERVAL: 10, // seconds
-    STOP_LOSS_PERCENTAGE: 30, // sell if price drops by 30%
-    TAKE_PROFIT_PERCENTAGE: 100, // sell if price increases by 100%
-    
-    // Auto-sell settings
-    SELL_SLIPPAGE_BPS: 3000, // 30% slippage for selling
-    SELL_PRIORITY_FEE_SOL: 0.0015, // Increased priority fee for selling
+    // Trading Configuration
+    AMOUNT_SOL: 0.4, // Amount of SOL to trade
+    TAKE_PROFIT_PERCENTAGE: 40, // Take profit when price increases by 40%
+    STOP_LOSS_PERCENTAGE: 30, // Stop loss when price decreases by 30%
 
-    // Scanner settings
-    SCAN_INTERVAL_MINUTES: 10 // Time between token scans
-} 
+    // Price Monitoring
+    PRICE_CHECK_INTERVAL: 10, // Interval in seconds for price checks
+
+    // Auto-sell Settings
+    SELL_SLIPPAGE_BPS: 3000, // 30% slippage tolerance for selling
+    SELL_PRIORITY_FEE_SOL: 0.0015, // Priority fee for faster sell execution
+
+    // Scanner Configuration
+    SCAN_INTERVAL_MINUTES: 10, // Time between token scans in minutes
+};
