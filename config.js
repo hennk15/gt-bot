@@ -31,5 +31,5 @@ module.exports = {
     SELL_PRIORITY_FEE_SOL: 0.0015, // Increased priority fee for selling
 
     // Scanner settings
-    SCAN_INTERVAL_MINUTES: 10 // Time between token scans
+    SCAN_INTERVAL_MINUTES: 3 // Time between token scans
 } 
